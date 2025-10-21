@@ -57,7 +57,7 @@ export interface JobInfo {
   id: string;
   url: string;
   format: string;
-  status: "RUNNING" | "COMPLETED" | "FAILED" | "EXPIRED";
+  status: "RUNNING" | "COMPLETED" | "FAILED" | "EXPIRED" | "QUEUED";
   progress: number;
   createdAt: string;
   updatedAt: string;

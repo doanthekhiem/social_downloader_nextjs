@@ -12,7 +12,7 @@ import {
 } from "@/lib/utils/ytdlpHelpers";
 import { AlertCircleIcon, CheckCircleIcon, ClockIcon, CopyIcon, DownloadIcon, XIcon } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -44,53 +44,54 @@ export default function Home() {
     setUrl("");
   };
 
-  const handleDownload = async (formatId: string) => {
-    if (!url.trim()) return;
+  const handleDownload = useCallback(
+    async (formatId: string) => {
+      if (!url.trim()) return;
 
-    // Add to downloading set
-    setDownloadingFormats((prev) => new Set(prev).add(formatId));
+      // Add to downloading set
+      setDownloadingFormats((prev) => new Set(prev).add(formatId));
 
-    // Clear any previous errors for this format
-    setDownloadErrors((prev) => {
-      const newMap = new Map(prev);
-      newMap.delete(formatId);
-      return newMap;
-    });
-
-    try {
-      const job = await submitJob.mutateAsync({
-        url: url,
-        format: formatId,
+      // Clear any previous errors for this format
+      setDownloadErrors((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(formatId);
+        return newMap;
       });
 
-      // Mark as successful
-      setDownloadSuccess((prev) => new Set(prev).add(formatId));
+      try {
+        const job = await submitJob.mutateAsync({
+          url: url,
+          format: formatId,
+        });
 
-      // Add job ID to submitted jobs
-      setSubmittedJobIds((prev) => new Set(prev).add(job.id));
+        // Add job ID to submitted jobs
+        setSubmittedJobIds((prev) => new Set(prev).add(job.id));
 
-      // Remove from downloading set
-      setDownloadingFormats((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(formatId);
-        return newSet;
-      });
+        // Update states in a single batch to prevent flickering
+        setDownloadingFormats((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(formatId);
+          return newSet;
+        });
 
-      console.log("Download job submitted:", job);
-    } catch (error: any) {
-      // Mark as error
-      setDownloadErrors((prev) => new Map(prev).set(formatId, error.message || "Download failed"));
+        setDownloadSuccess((prev) => new Set(prev).add(formatId));
 
-      // Remove from downloading set
-      setDownloadingFormats((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(formatId);
-        return newSet;
-      });
+        console.log("Download job submitted:", job);
+      } catch (error: any) {
+        // Update states in a single batch to prevent flickering
+        setDownloadingFormats((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(formatId);
+          return newSet;
+        });
 
-      console.error("Download error:", error);
-    }
-  };
+        setDownloadErrors((prev) => new Map(prev).set(formatId, error.message || "Download failed"));
+
+        console.error("Download error:", error);
+      }
+    },
+    [url, submitJob]
+  );
 
   const handleDownloadWithJobId = async (jobId: string) => {
     if (!url.trim()) return;
@@ -369,7 +370,6 @@ export default function Home() {
                 <thead>
                   <tr className="border-b border-gray-700">
                     <th className="text-left py-3 px-4">Status</th>
-                    <th className="text-left py-3 px-4">Format</th>
                     <th className="text-left py-3 px-4">Progress</th>
                     <th className="text-left py-3 px-4">File Size</th>
                     <th className="text-left py-3 px-4">Created</th>
@@ -383,36 +383,10 @@ export default function Home() {
                       <tr key={job.id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-2">
-                            {job.status === "RUNNING" && (
-                              <>
-                                <div className="animate-spin w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"></div>
-                                <span className="text-blue-400 text-sm">Running</span>
-                              </>
-                            )}
-                            {job.status === "COMPLETED" && (
-                              <>
-                                <CheckCircleIcon className="w-4 h-4 text-green-400" />
-                                <span className="text-green-400 text-sm">Completed</span>
-                              </>
-                            )}
-                            {job.status === "FAILED" && (
-                              <>
-                                <AlertCircleIcon className="w-4 h-4 text-red-400" />
-                                <span className="text-red-400 text-sm">Failed</span>
-                              </>
-                            )}
-                            {job.status === "EXPIRED" && (
-                              <>
-                                <ClockIcon className="w-4 h-4 text-yellow-400" />
-                                <span className="text-yellow-400 text-sm">Expired</span>
-                              </>
-                            )}
+                            <span className={`text-sm font-medium ${getJobStatusColor(job.status)}`}>
+                              {getJobStatusText(job.status)}
+                            </span>
                           </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded font-mono">
-                            {job.format}
-                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-2">
@@ -438,7 +412,7 @@ export default function Home() {
                                 job.status as JobInfo["status"]
                               )}`}
                             >
-                              {getJobStatusText(job.status)}
+                              Download
                             </button>
                           )}
                         </td>

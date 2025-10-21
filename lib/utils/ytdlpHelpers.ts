@@ -1,48 +1,52 @@
-import { JobInfo, VideoFormat, AudioFormat } from '../types/ytdlp';
+import { JobInfo, VideoFormat, AudioFormat } from "../types/ytdlp";
 
 // Utility functions for yt-dlp operations
 
 // Format job status for display
-export function getJobStatusText(status: JobInfo['status']): string {
+export function getJobStatusText(status: JobInfo["status"]): string {
   switch (status) {
-    case 'RUNNING':
-      return 'Processing';
-    case 'COMPLETED':
-      return 'Download';
-    case 'FAILED':
-      return 'Failed';
-    case 'EXPIRED':
-      return 'Expired';
+    case "RUNNING":
+      return "Processing";
+    case "COMPLETED":
+      return "Completed";
+    case "FAILED":
+      return "Failed";
+    case "EXPIRED":
+      return "Expired";
+    case "QUEUED":
+      return "Pending";
     default:
-      return 'Unknown';
+      return "Unknown";
   }
 }
 
 // Get status color for UI
-export function getJobStatusColor(status: JobInfo['status']): string {
+export function getJobStatusColor(status: JobInfo["status"]): string {
   switch (status) {
-    case 'RUNNING':
-      return 'text-blue-600';
-    case 'COMPLETED':
-      return 'text-green-600';
-    case 'FAILED':
-      return 'text-red-600';
-    case 'EXPIRED':
-      return 'text-orange-600';
+    case "RUNNING":
+      return "text-blue-600";
+    case "COMPLETED":
+      return "text-green-600";
+    case "FAILED":
+      return "text-red-600";
+    case "EXPIRED":
+      return "text-orange-600";
+    case "QUEUED":
+      return "text-yellow-600";
     default:
-      return 'text-gray-600';
+      return "text-gray-600";
   }
 }
 
 // Format file size
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  
+  if (bytes === 0) return "0 B";
+
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 // Format duration
@@ -50,17 +54,17 @@ export function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
-  
+
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 }
 
 // Get best quality video format
 export function getBestQualityVideoFormat(formats: VideoFormat[]): VideoFormat | null {
   if (!formats || formats.length === 0) return null;
-  
+
   // Sort by height (higher is better) and file size (larger is usually better quality)
   return formats.sort((a, b) => {
     if (a.height !== b.height) {
@@ -82,31 +86,31 @@ export function getVideoFormats(formats: VideoFormat[]): VideoFormat[] {
 
 // Check if job is active (running)
 export function isJobActive(job: JobInfo): boolean {
-  return job.status === 'RUNNING';
+  return job.status === "RUNNING";
 }
 
 // Check if job is finished (completed, failed, or expired)
 export function isJobFinished(job: JobInfo): boolean {
-  return job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'EXPIRED';
+  return job.status === "COMPLETED" || job.status === "FAILED" || job.status === "EXPIRED";
 }
 
 // Get progress percentage
 export function getJobProgress(job: JobInfo): number {
-  if (job.status === 'COMPLETED') return 100;
-  if (job.status === 'FAILED' || job.status === 'EXPIRED') return 0;
+  if (job.status === "COMPLETED") return 100;
+  if (job.status === "FAILED" || job.status === "EXPIRED") return 0;
   return job.progress || 0;
 }
 
 // Generate download filename
 export function generateFilename(job: JobInfo): string {
   if (!job.title) return `download_${job.id}`;
-  
+
   // Clean title for filename
   const cleanTitle = job.title
-    .replace(/[^\w\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '_') // Replace spaces with underscores
+    .replace(/[^\w\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "_") // Replace spaces with underscores
     .substring(0, 50); // Limit length
-  
+
   return `${cleanTitle}_${job.id}`;
 }
 
@@ -125,25 +129,25 @@ export function getPlatformFromUrl(url: string): string {
   try {
     const urlObj = new URL(url);
     const hostname = urlObj.hostname.toLowerCase();
-    
-    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
-      return 'YouTube';
+
+    if (hostname.includes("youtube.com") || hostname.includes("youtu.be")) {
+      return "YouTube";
     }
-    if (hostname.includes('tiktok.com')) {
-      return 'TikTok';
+    if (hostname.includes("tiktok.com")) {
+      return "TikTok";
     }
-    if (hostname.includes('instagram.com')) {
-      return 'Instagram';
+    if (hostname.includes("instagram.com")) {
+      return "Instagram";
     }
-    if (hostname.includes('facebook.com') || hostname.includes('fb.watch')) {
-      return 'Facebook';
+    if (hostname.includes("facebook.com") || hostname.includes("fb.watch")) {
+      return "Facebook";
     }
-    if (hostname.includes('twitter.com') || hostname.includes('x.com')) {
-      return 'Twitter';
+    if (hostname.includes("twitter.com") || hostname.includes("x.com")) {
+      return "Twitter";
     }
-    
-    return 'Unknown';
+
+    return "Unknown";
   } catch {
-    return 'Invalid URL';
+    return "Invalid URL";
   }
 }
