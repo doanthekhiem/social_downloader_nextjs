@@ -4,9 +4,16 @@ import { useState } from "react";
 import { useFormats, useSubmitJob, useJobsList } from "@/lib/hooks/useYtDlp";
 import Link from "next/link";
 import Image from "next/image";
-import { formatFileSize, formatDuration, getPlatformFromUrl, getJobStatusText } from "@/lib/utils/ytdlpHelpers";
+import {
+  formatFileSize,
+  formatDuration,
+  getPlatformFromUrl,
+  getJobStatusText,
+  getJobStatusColor,
+} from "@/lib/utils/ytdlpHelpers";
 import { DownloadIcon, CopyIcon, XIcon, SunIcon, CheckCircleIcon, AlertCircleIcon, ClockIcon } from "lucide-react";
 import { API_CONFIG } from "@/lib/api/config";
+import { JobInfo } from "@/lib/types/ytdlp";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -134,43 +141,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <header className="flex items-center justify-between p-6 border-b border-gray-800">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-              <DownloadIcon className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">Social Downloader</h1>
-              <p className="text-sm text-gray-400">Paste URL → pick format → download</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-6">
-          <nav className="flex space-x-4">
-            <Link href="/" className="text-white hover:text-purple-400 transition-colors">
-              Home
-            </Link>
-            <Link href="/jobs" className="text-gray-400 hover:text-white transition-colors">
-              Jobs
-            </Link>
-          </nav>
-          <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors">
-            <SunIcon className="w-5 h-5" />
-          </button>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-6 py-12">
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-purple-400 mb-4">Social Downloader</h1>
-          <p className="text-xl text-gray-400 mb-8">
-            Download videos from YouTube and other platforms with high quality formats
-          </p>
+          <p className="text-xl text-gray-400 mb-8">Paste URL → pick format → download</p>
         </div>
 
         {/* URL Input Section */}
@@ -455,13 +431,17 @@ export default function Home() {
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-400">{new Date(job.createdAt).toLocaleString()}</td>
                         <td className="py-3 px-4 text-sm text-gray-400">
-                          <button
-                            onClick={() => handleDownloadWithJobId(job.id)}
-                            disabled={job.status !== "COMPLETED"}
-                            className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-colors"
-                          >
-                           {getJobStatusText(job.status)}
-                          </button>
+                          {job.status === "COMPLETED" && (
+                            <button
+                              onClick={() => handleDownloadWithJobId(job.id)}
+                              disabled={job.status !== "COMPLETED"}
+                              className={`px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-colors ${getJobStatusColor(
+                                job.status as JobInfo["status"]
+                              )}`}
+                            >
+                              {getJobStatusText(job.status)}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
