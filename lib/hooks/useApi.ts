@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient, ApiResponse, ApiError } from '../api/client';
 import { API_ENDPOINTS } from '../api/config';
+import { useDownloadFile } from './useYtDlp';
 
 // Generic query hook
 export function useApiQuery<T>(
@@ -60,54 +61,30 @@ export function useApiMutation<TData, TVariables = any>(
 }
 
 // Specific hooks for social media download
-export function useDownloadYoutube(url: string) {
-  return useApiMutation(
-    API_ENDPOINTS.download.youtube,
-    'POST',
-    {
-      invalidateQueries: [['downloads']],
-    }
-  );
+export function useDownloadYoutube(jobId: string) {
+  return useDownloadFile(jobId, true);
 }
 
-export function useDownloadTiktok(url: string) {
-  return useApiMutation(
-    API_ENDPOINTS.download.tiktok,
-    'POST',
-    {
-      invalidateQueries: [['downloads']],
-    }
-  );
+// Note: These hooks are placeholders for future implementation
+// Currently only YouTube download is supported through the job system
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useDownloadTiktok(_url: string) {
+  throw new Error('TikTok download not implemented yet');
 }
 
-export function useDownloadInstagram(url: string) {
-  return useApiMutation(
-    API_ENDPOINTS.download.instagram,
-    'POST',
-    {
-      invalidateQueries: [['downloads']],
-    }
-  );
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useDownloadInstagram(_url: string) {
+  throw new Error('Instagram download not implemented yet');
 }
 
-export function useDownloadFacebook(url: string) {
-  return useApiMutation(
-    API_ENDPOINTS.download.facebook,
-    'POST',
-    {
-      invalidateQueries: [['downloads']],
-    }
-  );
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useDownloadFacebook(_url: string) {
+  throw new Error('Facebook download not implemented yet');
 }
 
-export function useDownloadTwitter(url: string) {
-  return useApiMutation(
-    API_ENDPOINTS.download.twitter,
-    'POST',
-    {
-      invalidateQueries: [['downloads']],
-    }
-  );
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useDownloadTwitter(_url: string) {
+  throw new Error('Twitter download not implemented yet');
 }
 
 // Health check hook

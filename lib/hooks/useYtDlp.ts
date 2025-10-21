@@ -1,23 +1,24 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../api/client';
-import { API_ENDPOINTS } from '../api/config';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiClient, ApiError } from "../api/client";
+import { API_ENDPOINTS } from "../api/config";
 import {
-  HealthResponse,
-  FormatRequest,
-  FormatsResponse,
-  JobSubmitRequest,
-  JobInfo,
-  JobListResponse,
-  JobDetailResponse,
   DownloadResponse,
+  FormatsResponse,
+  HealthResponse,
+  JobDetailResponse,
+  JobInfo,
+  JobSubmitRequest,
   YtDlpError,
-} from '../types/ytdlp';
+} from "../types/ytdlp";
 
 // Health check hook
 export function useHealthCheck() {
   return useQuery<HealthResponse, YtDlpError>({
-    queryKey: ['ytdlp', 'health'],
-    queryFn: () => apiClient.get<HealthResponse>(API_ENDPOINTS.health),
+    queryKey: ["ytdlp", "health"],
+    queryFn: async () => {
+      const response = await apiClient.get<HealthResponse>(API_ENDPOINTS.health);
+      return response.data;
+    },
     staleTime: 30 * 1000, // 30 seconds
     retry: 1,
   });
@@ -26,7 +27,7 @@ export function useHealthCheck() {
 // Get available formats for a URL
 export function useFormats(url: string, enabled: boolean = true) {
   return useQuery<FormatsResponse, YtDlpError>({
-    queryKey: ['ytdlp', 'formats', url],
+    queryKey: ["ytdlp", "formats", url],
     queryFn: async () => {
       const response = await apiClient.post<FormatsResponse>(API_ENDPOINTS.formats, { url });
       return response.data;
@@ -41,20 +42,23 @@ export function useSubmitJob() {
   const queryClient = useQueryClient();
 
   return useMutation<JobInfo, YtDlpError, JobSubmitRequest>({
-    mutationFn: (data) => apiClient.post<JobInfo>(API_ENDPOINTS.jobs.submit, data),
+    mutationFn: async (data) => {
+      const response = await apiClient.post<JobInfo>(API_ENDPOINTS.jobs.submit, data);
+      return response.data;
+    },
     onSuccess: () => {
       // Invalidate jobs list when new job is submitted
-      queryClient.invalidateQueries({ queryKey: ['ytdlp', 'jobs'] });
+      queryClient.invalidateQueries({ queryKey: ["ytdlp", "jobs"] });
     },
   });
 }
 
 // Get jobs list
-export function useJobsList(page: number = 1, limit: number = 10) {
-  return useQuery<JobListResponse, YtDlpError>({
-    queryKey: ['ytdlp', 'jobs', 'list', page, limit],
+export function useJobsList(page: number = 0, pageSize: number = 50) {
+  return useQuery<JobInfo[], YtDlpError>({
+    queryKey: ["ytdlp", "jobs", "list", page, pageSize],
     queryFn: async () => {
-      const response = await apiClient.get<JobListResponse>(`${API_ENDPOINTS.jobs.list}?page=${page}&limit=${limit}`);
+      const response = await apiClient.get<JobInfo[]>(`${API_ENDPOINTS.jobs.list}?page=${page}&pageSize=${pageSize}`);
       return response.data;
     },
     staleTime: 10 * 1000, // 10 seconds
@@ -64,14 +68,17 @@ export function useJobsList(page: number = 1, limit: number = 10) {
 
 // Get job detail
 export function useJobDetail(jobId: string, enabled: boolean = true) {
-  return useQuery<JobDetailResponse, YtDlpError>({
-    queryKey: ['ytdlp', 'jobs', 'detail', jobId],
-    queryFn: () => apiClient.get<JobDetailResponse>(API_ENDPOINTS.jobs.detail(jobId)),
+  return useQuery<JobDetailResponse, ApiError>({
+    queryKey: ["ytdlp", "jobs", "detail", jobId],
+    queryFn: async () => {
+      const response = await apiClient.get<JobDetailResponse>(API_ENDPOINTS.jobs.detail(jobId));
+      return response.data;
+    },
     enabled: enabled && !!jobId,
     staleTime: 5 * 1000, // 5 seconds
     refetchInterval: (data) => {
       // Stop refetching if job is completed or failed
-      if (data?.status === 'completed' || data?.status === 'failed') {
+      if (data?.state?.data?.status === "COMPLETED" || data?.state?.data?.status === "FAILED") {
         return false;
       }
       return 3 * 1000; // Refetch every 3 seconds for active jobs
@@ -81,9 +88,12 @@ export function useJobDetail(jobId: string, enabled: boolean = true) {
 
 // Download file
 export function useDownloadFile(jobId: string, enabled: boolean = true) {
-  return useQuery<DownloadResponse, YtDlpError>({
-    queryKey: ['ytdlp', 'jobs', 'download', jobId],
-    queryFn: () => apiClient.get<DownloadResponse>(API_ENDPOINTS.jobs.download(jobId)),
+  return useQuery<DownloadResponse, ApiError>({
+    queryKey: ["ytdlp", "jobs", "download", jobId],
+    queryFn: async () => {
+      const response = await apiClient.get<DownloadResponse>(API_ENDPOINTS.jobs.download(jobId));
+      return response.data;
+    },
     enabled: enabled && !!jobId,
     staleTime: 0, // Always fetch fresh data for downloads
   });
@@ -92,7 +102,6 @@ export function useDownloadFile(jobId: string, enabled: boolean = true) {
 // Combined hook for complete download flow
 export function useDownloadFlow() {
   const submitJob = useSubmitJob();
-  const queryClient = useQueryClient();
 
   const startDownload = async (url: string, format: string) => {
     try {
@@ -103,13 +112,9 @@ export function useDownloadFlow() {
     }
   };
 
-  const getJobStatus = (jobId: string) => {
-    return useJobDetail(jobId);
-  };
+  const getJobStatus = useJobDetail;
 
-  const downloadFile = (jobId: string) => {
-    return useDownloadFile(jobId);
-  };
+  const downloadFile = useDownloadFile;
 
   return {
     startDownload,
@@ -123,20 +128,18 @@ export function useDownloadFlow() {
 // Utility hooks for common operations
 export function useActiveJobs() {
   const { data: jobsList } = useJobsList();
-  
-  return jobsList?.jobs.filter(job => 
-    job.status === 'pending' || job.status === 'processing'
-  ) || [];
+
+  return jobsList?.filter((job) => job.status === "RUNNING") || [];
 }
 
 export function useCompletedJobs() {
   const { data: jobsList } = useJobsList();
-  
-  return jobsList?.jobs.filter(job => job.status === 'completed') || [];
+
+  return jobsList?.filter((job) => job.status === "COMPLETED") || [];
 }
 
 export function useFailedJobs() {
   const { data: jobsList } = useJobsList();
-  
-  return jobsList?.jobs.filter(job => job.status === 'failed') || [];
+
+  return jobsList?.filter((job) => job.status === "FAILED") || [];
 }

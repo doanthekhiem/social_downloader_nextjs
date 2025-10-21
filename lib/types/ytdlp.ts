@@ -2,7 +2,7 @@
 
 // Health check response
 export interface HealthResponse {
-  status: 'ok' | 'error';
+  status: "ok" | "error";
   message: string;
   timestamp: string;
 }
@@ -57,16 +57,21 @@ export interface JobInfo {
   id: string;
   url: string;
   format: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: "RUNNING" | "COMPLETED" | "FAILED" | "EXPIRED";
   progress: number;
-  created_at: string;
-  updated_at: string;
-  error_message?: string;
-  file_path?: string;
-  file_size?: number;
-  duration?: number;
+  createdAt: string;
+  updatedAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  deletedAt?: string;
   title?: string;
-  thumbnail?: string;
+  outputFileName?: string;
+  fileSizeBytes?: number;
+  downloadedBytes?: number;
+  totalBytes?: number;
+  speed?: number;
+  etaSec?: number;
+  logTail?: string[];
 }
 
 export interface JobListResponse {
@@ -76,7 +81,15 @@ export interface JobListResponse {
   limit: number;
 }
 
-export interface JobDetailResponse extends JobInfo {}
+export interface JobDetailResponse extends JobInfo {
+  outputFileName?: string;
+  fileSizeBytes?: number;
+  downloadedBytes?: number;
+  totalBytes?: number;
+  speed?: number;
+  etaSec?: number;
+  logTail?: string[];
+}
 
 // Download response
 export interface DownloadResponse {
