@@ -78,7 +78,7 @@ export interface ApiErrorResponse {
 // Query key types for better type safety
 export type QueryKeys = {
   downloads: ['downloads'];
-  download: (id: string) => ['download', id];
+  download: (id: string) => ['download', string];
   health: ['health'];
-  platform: (platform: string) => ['platform', platform];
+  platform: (platform: string) => ['platform', string];
 };

@@ -2,7 +2,7 @@
 
 import { useJobsList } from '@/lib/hooks/useYtDlp';
 import Link from 'next/link';
-import { getJobStatusText, getJobStatusColor, formatFileSize, formatDuration } from '@/lib/utils/ytdlpHelpers';
+import { getJobStatusText, getJobStatusColor, formatFileSize } from '@/lib/utils/ytdlpHelpers';
 import { DownloadIcon, ClockIcon, CheckCircleIcon, XCircleIcon, PlayIcon } from 'lucide-react';
 
 export default function JobsPage() {
@@ -10,13 +10,13 @@ export default function JobsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <ClockIcon className="w-4 h-4" />;
-      case 'processing':
+      case 'RUNNING':
         return <PlayIcon className="w-4 h-4" />;
-      case 'completed':
+      case 'COMPLETED':
         return <CheckCircleIcon className="w-4 h-4" />;
-      case 'failed':
+      case 'FAILED':
+        return <XCircleIcon className="w-4 h-4" />;
+      case 'EXPIRED':
         return <XCircleIcon className="w-4 h-4" />;
       default:
         return <ClockIcon className="w-4 h-4" />;
@@ -65,7 +65,7 @@ export default function JobsPage() {
             <h3 className="text-red-400 font-semibold mb-2">Error</h3>
             <p className="text-red-300">{jobsError.message}</p>
           </div>
-        ) : jobsData?.jobs.length === 0 ? (
+        ) : jobsData?.length === 0 ? (
           <div className="bg-gray-800 rounded-xl p-8 text-center">
             <DownloadIcon className="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">No jobs yet</h3>
@@ -80,17 +80,11 @@ export default function JobsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {jobsData?.jobs.map((job) => (
+            {jobsData?.map((job) => (
               <div key={job.id} className="bg-gray-800 rounded-xl p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start space-x-4">
-                    {job.thumbnail && (
-                      <img
-                        src={job.thumbnail}
-                        alt="Video thumbnail"
-                        className="w-16 h-12 object-cover rounded"
-                      />
-                    )}
+                    {/* Thumbnail removed - not available in JobInfo type */}
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold mb-1">
                         {job.title || 'Unknown Title'}
@@ -98,12 +92,10 @@ export default function JobsPage() {
                       <p className="text-sm text-gray-400 mb-2 break-all">{job.url}</p>
                       <div className="flex items-center space-x-4 text-sm text-gray-400">
                         <span>Format: {job.format}</span>
-                        {job.file_size && (
-                          <span>Size: {formatFileSize(job.file_size)}</span>
+                        {job.fileSizeBytes && (
+                          <span>Size: {formatFileSize(job.fileSizeBytes)}</span>
                         )}
-                        {job.duration && (
-                          <span>Duration: {formatDuration(job.duration)}</span>
-                        )}
+                        {/* Duration removed - not available in JobInfo type */}
                       </div>
                     </div>
                   </div>
@@ -119,7 +111,7 @@ export default function JobsPage() {
                 </div>
 
                 {/* Progress Bar */}
-                {job.status === 'processing' && job.progress > 0 && (
+                {job.status === 'RUNNING' && job.progress > 0 && (
                   <div className="mb-4">
                     <div className="flex justify-between text-sm text-gray-400 mb-1">
                       <span>Progress</span>
@@ -137,19 +129,19 @@ export default function JobsPage() {
                 {/* Job Details */}
                 <div className="flex items-center justify-between text-sm text-gray-400">
                   <div className="flex items-center space-x-4">
-                    <span>Created: {new Date(job.created_at).toLocaleString()}</span>
-                    <span>Updated: {new Date(job.updated_at).toLocaleString()}</span>
+                    <span>Created: {new Date(job.createdAt).toLocaleString()}</span>
+                    <span>Updated: {new Date(job.updatedAt).toLocaleString()}</span>
                   </div>
                   
                   <div className="flex items-center space-x-2">
-                    {job.status === 'completed' && job.file_path && (
+                    {job.status === 'COMPLETED' && job.outputFileName && (
                       <button className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors">
                         Download File
                       </button>
                     )}
-                    {job.status === 'failed' && job.error_message && (
+                    {job.status === 'FAILED' && (
                       <span className="text-red-400 text-sm">
-                        Error: {job.error_message}
+                        Job failed
                       </span>
                     )}
                   </div>

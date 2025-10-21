@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useYtDlp, useDownloadFlow } from '@/lib/hooks/useYtDlp';
-import { getJobStatusText, getJobStatusColor, formatFileSize, formatDuration } from '@/lib/utils/ytdlpHelpers';
+import { useHealthCheck, useFormats, useJobsList, useDownloadFlow } from '@/lib/hooks/useYtDlp';
+import { getJobStatusText, getJobStatusColor, formatFileSize } from '@/lib/utils/ytdlpHelpers';
 
 export default function YtDlpExample() {
   const [url, setUrl] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('');
   
-  const { data: healthData, isLoading: healthLoading } = useYtDlp.useHealthCheck();
-  const { data: formatsData, isLoading: formatsLoading } = useYtDlp.useFormats(url, !!url);
-  const { data: jobsData, isLoading: jobsLoading } = useYtDlp.useJobsList();
+  const { data: healthData, isLoading: healthLoading } = useHealthCheck();
+  const { data: formatsData, isLoading: formatsLoading } = useFormats(url, !!url);
+  const { data: jobsData, isLoading: jobsLoading } = useJobsList();
   
   const downloadFlow = useDownloadFlow();
 
@@ -76,25 +76,51 @@ export default function YtDlpExample() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-4">Available Formats</h2>
           <div className="space-y-2 max-h-60 overflow-y-auto">
-            {formatsData.formats.map((format) => (
+            {/* Video Formats */}
+            {formatsData.videos.map((format) => (
               <div
-                key={format.format_id}
+                key={format.itag}
                 className={`p-3 border rounded-lg cursor-pointer ${
-                  selectedFormat === format.format_id
+                  selectedFormat === format.itag
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-300 hover:border-gray-400'
                 }`}
-                onClick={() => setSelectedFormat(format.format_id)}
+                onClick={() => setSelectedFormat(format.itag)}
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="font-medium">{format.format_id}</span>
+                    <span className="font-medium">{format.itag}</span>
                     <span className="ml-2 text-sm text-gray-600">
-                      {format.ext} • {format.resolution} • {format.vcodec}
+                      {format.ext} • {format.height}p • {format.vcodec}
                     </span>
                   </div>
                   <div className="text-sm text-gray-600">
-                    {format.filesize ? formatFileSize(format.filesize) : 'Unknown size'}
+                    {format.filesizeBytes ? formatFileSize(format.filesizeBytes) : 'Unknown size'}
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Audio Formats */}
+            {formatsData.audios.map((format) => (
+              <div
+                key={format.itag}
+                className={`p-3 border rounded-lg cursor-pointer ${
+                  selectedFormat === format.itag
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onClick={() => setSelectedFormat(format.itag)}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-medium">{format.itag}</span>
+                    <span className="ml-2 text-sm text-gray-600">
+                      {format.ext} • {format.abrKbps}kbps
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {format.filesizeBytes ? formatFileSize(format.filesizeBytes) : 'Unknown size'}
                   </div>
                 </div>
               </div>
@@ -123,7 +149,7 @@ export default function YtDlpExample() {
           <p>Loading jobs...</p>
         ) : (
           <div className="space-y-3">
-            {jobsData?.jobs.map((job) => (
+            {jobsData?.map((job) => (
               <div key={job.id} className="p-4 border border-gray-300 rounded-lg">
                 <div className="flex justify-between items-start mb-2">
                   <div>
@@ -148,13 +174,11 @@ export default function YtDlpExample() {
                 )}
                 
                 <div className="text-sm text-gray-600">
-                  <p>Created: {new Date(job.created_at).toLocaleString()}</p>
-                  {job.file_size && (
-                    <p>Size: {formatFileSize(job.file_size)}</p>
+                  <p>Created: {new Date(job.createdAt).toLocaleString()}</p>
+                  {job.fileSizeBytes && (
+                    <p>Size: {formatFileSize(job.fileSizeBytes)}</p>
                   )}
-                  {job.duration && (
-                    <p>Duration: {formatDuration(job.duration)}</p>
-                  )}
+                  {/* Duration removed - not available in JobInfo type */}
                 </div>
               </div>
             ))}

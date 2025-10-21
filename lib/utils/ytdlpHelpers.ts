@@ -1,18 +1,18 @@
-import { JobInfo, FormatInfo } from '../types/ytdlp';
+import { JobInfo, VideoFormat, AudioFormat } from '../types/ytdlp';
 
 // Utility functions for yt-dlp operations
 
 // Format job status for display
 export function getJobStatusText(status: JobInfo['status']): string {
   switch (status) {
-    case 'pending':
-      return 'Đang chờ';
-    case 'processing':
+    case 'RUNNING':
       return 'Đang xử lý';
-    case 'completed':
+    case 'COMPLETED':
       return 'Hoàn thành';
-    case 'failed':
+    case 'FAILED':
       return 'Thất bại';
+    case 'EXPIRED':
+      return 'Hết hạn';
     default:
       return 'Không xác định';
   }
@@ -21,14 +21,14 @@ export function getJobStatusText(status: JobInfo['status']): string {
 // Get status color for UI
 export function getJobStatusColor(status: JobInfo['status']): string {
   switch (status) {
-    case 'pending':
-      return 'text-yellow-600';
-    case 'processing':
+    case 'RUNNING':
       return 'text-blue-600';
-    case 'completed':
+    case 'COMPLETED':
       return 'text-green-600';
-    case 'failed':
+    case 'FAILED':
       return 'text-red-600';
+    case 'EXPIRED':
+      return 'text-orange-600';
     default:
       return 'text-gray-600';
   }
@@ -57,47 +57,43 @@ export function formatDuration(seconds: number): string {
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Get best quality format
-export function getBestQualityFormat(formats: FormatInfo[]): FormatInfo | null {
+// Get best quality video format
+export function getBestQualityVideoFormat(formats: VideoFormat[]): VideoFormat | null {
   if (!formats || formats.length === 0) return null;
   
-  // Sort by quality (higher is better) and file size (larger is usually better quality)
+  // Sort by height (higher is better) and file size (larger is usually better quality)
   return formats.sort((a, b) => {
-    if (a.quality !== b.quality) {
-      return b.quality - a.quality;
+    if (a.height !== b.height) {
+      return b.height - a.height;
     }
-    return b.filesize - a.filesize;
+    return b.filesizeBytes - a.filesizeBytes;
   })[0];
 }
 
 // Get audio-only formats
-export function getAudioFormats(formats: FormatInfo[]): FormatInfo[] {
-  return formats.filter(format => 
-    format.acodec !== 'none' && format.vcodec === 'none'
-  );
+export function getAudioFormats(formats: AudioFormat[]): AudioFormat[] {
+  return formats; // AudioFormat array already contains only audio formats
 }
 
 // Get video formats
-export function getVideoFormats(formats: FormatInfo[]): FormatInfo[] {
-  return formats.filter(format => 
-    format.vcodec !== 'none'
-  );
+export function getVideoFormats(formats: VideoFormat[]): VideoFormat[] {
+  return formats; // VideoFormat array already contains only video formats
 }
 
-// Check if job is active (pending or processing)
+// Check if job is active (running)
 export function isJobActive(job: JobInfo): boolean {
-  return job.status === 'pending' || job.status === 'processing';
+  return job.status === 'RUNNING';
 }
 
-// Check if job is finished (completed or failed)
+// Check if job is finished (completed, failed, or expired)
 export function isJobFinished(job: JobInfo): boolean {
-  return job.status === 'completed' || job.status === 'failed';
+  return job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'EXPIRED';
 }
 
 // Get progress percentage
 export function getJobProgress(job: JobInfo): number {
-  if (job.status === 'completed') return 100;
-  if (job.status === 'failed') return 0;
+  if (job.status === 'COMPLETED') return 100;
+  if (job.status === 'FAILED' || job.status === 'EXPIRED') return 0;
   return job.progress || 0;
 }
 
