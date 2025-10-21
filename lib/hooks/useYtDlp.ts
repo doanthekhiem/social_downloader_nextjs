@@ -54,7 +54,7 @@ export function useSubmitJob() {
 }
 
 // Get jobs list
-export function useJobsList(page: number = 0, pageSize: number = 50) {
+export function useJobsList(page: number = 0, pageSize: number = 10) {
   return useQuery<JobInfo[], YtDlpError>({
     queryKey: ["ytdlp", "jobs", "list", page, pageSize],
     queryFn: async () => {
