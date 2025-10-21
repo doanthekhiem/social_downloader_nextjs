@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useFormats, useSubmitJob, useJobsList } from "@/lib/hooks/useYtDlp";
 import Link from "next/link";
 import Image from "next/image";
-import { formatFileSize, formatDuration, getPlatformFromUrl } from "@/lib/utils/ytdlpHelpers";
+import { formatFileSize, formatDuration, getPlatformFromUrl, getJobStatusText } from "@/lib/utils/ytdlpHelpers";
 import { DownloadIcon, CopyIcon, XIcon, SunIcon, CheckCircleIcon, AlertCircleIcon, ClockIcon } from "lucide-react";
 import { API_CONFIG } from "@/lib/api/config";
 
@@ -460,7 +460,7 @@ export default function Home() {
                             disabled={job.status !== "COMPLETED"}
                             className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-colors"
                           >
-                            {job.status !== "COMPLETED" ? "Downloading..." : "Download"}
+                           {getJobStatusText(job.status)}
                           </button>
                         </td>
                       </tr>

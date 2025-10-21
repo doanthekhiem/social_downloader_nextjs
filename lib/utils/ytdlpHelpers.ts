@@ -6,15 +6,15 @@ import { JobInfo, VideoFormat, AudioFormat } from '../types/ytdlp';
 export function getJobStatusText(status: JobInfo['status']): string {
   switch (status) {
     case 'RUNNING':
-      return 'Đang xử lý';
+      return 'Processing';
     case 'COMPLETED':
-      return 'Hoàn thành';
+      return 'Download';
     case 'FAILED':
-      return 'Thất bại';
+      return 'Failed';
     case 'EXPIRED':
-      return 'Hết hạn';
+      return 'Expired';
     default:
-      return 'Không xác định';
+      return 'Unknown';
   }
 }
 
