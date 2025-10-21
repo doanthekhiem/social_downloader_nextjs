@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useFormats, useSubmitJob, useJobsList } from "@/lib/hooks/useYtDlp";
-import Link from "next/link";
-import Image from "next/image";
-import {
-  formatFileSize,
-  formatDuration,
-  getPlatformFromUrl,
-  getJobStatusText,
-  getJobStatusColor,
-} from "@/lib/utils/ytdlpHelpers";
-import { DownloadIcon, CopyIcon, XIcon, SunIcon, CheckCircleIcon, AlertCircleIcon, ClockIcon } from "lucide-react";
 import { API_CONFIG } from "@/lib/api/config";
+import { useFormats, useJobsList, useSubmitJob } from "@/lib/hooks/useYtDlp";
 import { JobInfo } from "@/lib/types/ytdlp";
+import {
+  formatDuration,
+  formatFileSize,
+  getJobStatusColor,
+  getJobStatusText,
+  getPlatformFromUrl,
+} from "@/lib/utils/ytdlpHelpers";
+import { AlertCircleIcon, CheckCircleIcon, ClockIcon, CopyIcon, DownloadIcon, XIcon } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -26,7 +25,7 @@ export default function Home() {
   const { data: formatsData, isLoading: formatsLoading, error: formatsError } = useFormats(url, !!url);
   const submitJob = useSubmitJob();
   // Remove the downloadFile hook since we'll handle downloads differently
-  const { data: jobsData } = useJobsList(0, 50);
+  const { data: jobsData } = useJobsList(0, 10);
 
   const handleGetFormats = () => {
     if (!url.trim()) return;
