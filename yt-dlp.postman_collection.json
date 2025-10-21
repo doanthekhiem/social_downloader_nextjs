@@ -1,0 +1,153 @@
+{
+	"info": {
+		"_postman_id": "ef11a63e-3dc6-4fe5-b2e8-f8f5ab8f2955",
+		"name": "yt-dlp",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4040116",
+		"_collection_link": "https://testva.postman.co/workspace/TestVA-Workspace~4a137dbf-9228-4e64-884b-87a9399ee27e/collection/4040116-ef11a63e-3dc6-4fe5-b2e8-f8f5ab8f2955?action=share&source=collection_link&creator=4040116"
+	},
+	"item": [
+		{
+			"name": "health-check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/health",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "formats",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"url\": \"https://www.youtube.com/watch?v=KUasZeGMS5c\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/v1/formats",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"formats"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download-submit",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"url\": \"https://www.youtube.com/watch?v=KUasZeGMS5c\",\r\n    \"format\": \"137\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/v1/jobs",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "list-jobs",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/jobs",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "detail-job",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/jobs/f891b9be-cab3-470d-8049-ec79252c53a2",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"jobs",
+						"f891b9be-cab3-470d-8049-ec79252c53a2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/jobs/f891b9be-cab3-470d-8049-ec79252c53a2/download",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"jobs",
+						"f891b9be-cab3-470d-8049-ec79252c53a2",
+						"download"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
